@@ -1,0 +1,53 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# === Virtual env ===
+.venv/
+venv/
+ENV/
+env/
+
+# === Django ===
+*.log
+local_settings.py
+db.sqlite3
+media/
+staticfiles/
+
+# migrations (원하면 추적, 보통은 추적함)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# === Secrets / env ===
+.env
+.env.*
+!.env.example
+
+# === PyCharm ===
+.idea/
+*.iml
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Jupyter ===
+.ipynb_checkpoints/
+
+# === Coverage ===
+htmlcov/
+.coverage
+coverage.xml
