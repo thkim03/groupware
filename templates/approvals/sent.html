@@ -1,0 +1,38 @@
+{% extends 'layout/base.html' %}
+{% block title %}기안함{% endblock %}
+{% block content %}
+<h2 class="mb-4">기안함</h2>
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>문서종류</th><th>제목</th><th>상태</th><th>기안일</th><th>관리</th></tr>
+      </thead>
+      <tbody>
+      {% for doc in docs %}
+      <tr>
+        <td><span class="badge bg-primary">{{ doc.get_doc_type_display }}</span></td>
+        <td>{{ doc.title }}</td>
+        <td>
+          <span class="badge bg-{% if doc.status == 'APPROVED' %}success{% elif doc.status == 'REJECTED' %}danger{% elif doc.status == 'PENDING' %}warning text-dark{% elif doc.status == 'CANCELED' %}secondary{% else %}info{% endif %}">
+            {{ doc.get_status_display }}
+          </span>
+        </td>
+        <td>{{ doc.created_at|date:"Y-m-d" }}</td>
+        <td>
+          {% if doc.status in 'DRAFT,SUBMITTED,PENDING' %}
+          <form method="post" action="{% url 'approvals:cancel_doc' doc.pk %}" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('취소하시겠습니까?')">취소</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center text-muted py-4">기안한 문서가 없습니다.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

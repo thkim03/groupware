@@ -1,0 +1,42 @@
+{% extends 'layout/base.html' %}
+{% load attendance_tags %}
+{% block title %}내 근태 현황{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>내 근태 현황 - {{ year }}년 {{ month }}월</h2>
+  <div class="d-flex gap-2">
+    <a href="{% url 'attendance:my_attendance_month' prev_month.year prev_month.month %}" class="btn btn-outline-secondary btn-sm">&lt; 이전달</a>
+    <a href="{% url 'attendance:my_attendance_month' next_month.year next_month.month %}" class="btn btn-outline-secondary btn-sm">다음달 &gt;</a>
+  </div>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>날짜</th><th>요일</th><th>출근</th><th>퇴근</th><th>출장</th><th>비고</th><th>수정</th></tr>
+      </thead>
+      <tbody>
+      {% for day in days %}
+      {% with rec=records|default:'' %}
+      <tr {% if day == today %}class="table-warning"{% elif day.weekday >= 5 %}class="table-light text-muted"{% endif %}>
+        <td>{{ day|date:"m/d" }}</td>
+        <td>{{ day|date:"D" }}</td>
+        {% with r=records|get_item:day %}
+        {% if r %}
+        <td>{{ r.check_in|default:"-" }}</td>
+        <td>{{ r.check_out|default:"-" }}</td>
+        <td>{% if r.is_business_trip %}<span class="badge bg-info">출장</span>{% endif %}</td>
+        <td>{{ r.note }}</td>
+        <td><a href="{% url 'attendance:edit_attendance' r.pk %}" class="btn btn-sm btn-outline-secondary">수정</a></td>
+        {% else %}
+        <td>-</td><td>-</td><td></td><td></td><td></td>
+        {% endif %}
+        {% endwith %}
+      </tr>
+      {% endwith %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

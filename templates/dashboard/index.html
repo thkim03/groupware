@@ -1,0 +1,89 @@
+{% extends 'layout/base.html' %}
+{% block title %}대시보드{% endblock %}
+{% block content %}
+<h2 class="mb-4">대시보드</h2>
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h6 class="card-title text-muted">오늘 근태 ({{ today }})</h6>
+        {% if today_record %}
+          <p class="mb-1">출근: <strong>{{ today_record.check_in|default:"-" }}</strong></p>
+          <p class="mb-1">퇴근: <strong>{{ today_record.check_out|default:"-" }}</strong></p>
+          {% if today_record.is_business_trip %}<span class="badge bg-info">출장중</span>{% endif %}
+        {% else %}
+          <p class="text-muted">아직 출근하지 않았습니다.</p>
+        {% endif %}
+        <div class="d-flex gap-2 mt-2">
+          <form method="post" action="{% url 'attendance:check_in' %}">{% csrf_token %}<button class="btn btn-sm btn-success">출근</button></form>
+          <form method="post" action="{% url 'attendance:check_out' %}">{% csrf_token %}<button class="btn btn-sm btn-danger">퇴근</button></form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h6 class="card-title text-muted">내 정보</h6>
+        <p class="mb-1">{{ user.get_full_name|default:user.username }}</p>
+        <p class="mb-1"><span class="badge bg-secondary">{{ user.rank }}</span> {{ user.department }}</p>
+        <p class="mb-0">잔여 연차: <strong>{{ user.annual_leave_days }}일</strong></p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h6 class="card-title text-muted">결재 대기</h6>
+        <p class="fs-3 fw-bold text-primary mb-0">{{ pending_lines|length }}건</p>
+        <a href="{% url 'approvals:inbox' %}" class="btn btn-sm btn-outline-primary mt-2">결재함 가기</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-bold">결재 대기 문서</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light"><tr><th>문서</th><th>기안자</th><th>기안일</th></tr></thead>
+          <tbody>
+          {% for line in pending_lines %}
+          <tr>
+            <td><a href="{% url 'approvals:approve_action' line.doc.pk %}">{{ line.doc }}</a></td>
+            <td>{{ line.doc.author }}</td>
+            <td>{{ line.doc.created_at|date:"m/d" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted py-3">대기 문서 없음</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-bold">내 기안 문서</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light"><tr><th>문서</th><th>상태</th><th>기안일</th></tr></thead>
+          <tbody>
+          {% for doc in my_docs %}
+          <tr>
+            <td>{{ doc }}</td>
+            <td><span class="badge bg-{% if doc.status == 'APPROVED' %}success{% elif doc.status == 'REJECTED' %}danger{% elif doc.status == 'PENDING' %}warning{% else %}secondary{% endif %}">{{ doc.get_status_display }}</span></td>
+            <td>{{ doc.created_at|date:"m/d" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted py-3">기안 문서 없음</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

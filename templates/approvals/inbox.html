@@ -1,0 +1,29 @@
+{% extends 'layout/base.html' %}
+{% block title %}결재함{% endblock %}
+{% block content %}
+<h2 class="mb-4">결재함</h2>
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>문서종류</th><th>제목</th><th>기안자</th><th>기안일</th><th>처리</th></tr>
+      </thead>
+      <tbody>
+      {% for line in lines %}
+      <tr>
+        <td><span class="badge bg-primary">{{ line.doc.get_doc_type_display }}</span></td>
+        <td>{{ line.doc.title }}</td>
+        <td>{{ line.doc.author }}</td>
+        <td>{{ line.doc.created_at|date:"Y-m-d" }}</td>
+        <td>
+          <a href="{% url 'approvals:approve_action' line.doc.pk %}" class="btn btn-sm btn-primary">결재</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center text-muted py-4">대기 중인 결재 문서가 없습니다.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

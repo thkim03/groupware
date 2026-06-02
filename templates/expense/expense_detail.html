@@ -1,0 +1,52 @@
+{% extends 'layout/base.html' %}
+{% block title %}지출결의 상세{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between">
+        <h4>지출결의 상세</h4>
+        <span class="badge bg-{% if doc.status == 'APPROVED' %}success{% elif doc.status == 'REJECTED' %}danger{% elif doc.status == 'PENDING' %}warning text-dark{% else %}secondary{% endif %} fs-6">{{ doc.get_status_display }}</span>
+      </div>
+      <div class="card-body">
+        <table class="table">
+          <tr><th>제목</th><td>{{ doc.title }}</td></tr>
+          <tr><th>기안자</th><td>{{ doc.author }}</td></tr>
+          <tr><th>출처</th><td>{{ expense.get_source_type_display }}</td></tr>
+          <tr><th>기안일</th><td>{{ doc.created_at }}</td></tr>
+          {% if expense.attachment %}
+          <tr><th>첨부파일</th><td><a href="{{ expense.attachment.url }}">{{ expense.attachment.name }}</a></td></tr>
+          {% endif %}
+        </table>
+        <h6>지출 항목</h6>
+        <table class="table table-sm">
+          <thead><tr><th>항목명</th><th>금액</th></tr></thead>
+          <tbody>
+          {% for item in items %}
+          <tr>
+            <td>{{ item.description }}</td>
+            <td>{{ item.amount|floatformat:0 }}원</td>
+          </tr>
+          {% endfor %}
+          <tr class="table-light fw-bold"><td>합계</td><td>{{ total|floatformat:0 }}원</td></tr>
+          </tbody>
+        </table>
+        <h6>결재선</h6>
+        <table class="table table-sm">
+          <thead><tr><th>순서</th><th>결재자</th><th>상태</th><th>의견</th></tr></thead>
+          <tbody>
+          {% for line in lines %}
+          <tr>
+            <td>{{ line.order }}</td><td>{{ line.approver }}</td>
+            <td><span class="badge bg-{% if line.status == 'APPROVED' %}success{% elif line.status == 'REJECTED' %}danger{% elif line.status == 'PENDING' %}warning text-dark{% else %}secondary{% endif %}">{{ line.get_status_display }}</span></td>
+            <td>{{ line.comment }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <a href="{% url 'expense:expense_list' %}" class="btn btn-secondary">목록으로</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
