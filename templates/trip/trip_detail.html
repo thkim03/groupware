@@ -1,0 +1,43 @@
+{% extends 'layout/base.html' %}
+{% block title %}출장신청 상세{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between">
+        <h4>출장신청 상세</h4>
+        <span class="badge bg-{% if doc.status == 'APPROVED' %}success{% elif doc.status == 'REJECTED' %}danger{% elif doc.status == 'PENDING' %}warning text-dark{% else %}secondary{% endif %} fs-6">{{ doc.get_status_display }}</span>
+      </div>
+      <div class="card-body">
+        <table class="table">
+          <tr><th>제목</th><td>{{ doc.title }}</td></tr>
+          <tr><th>기안자</th><td>{{ doc.author }}</td></tr>
+          <tr><th>목적지</th><td>{{ trip.destination }}</td></tr>
+          <tr><th>기간</th><td>{{ trip.start_date }} ~ {{ trip.end_date }}</td></tr>
+          <tr><th>목적</th><td>{{ trip.purpose }}</td></tr>
+          <tr><th>기안일</th><td>{{ doc.created_at }}</td></tr>
+          {% if trip.expense_doc %}
+          <tr><th>지출결의서</th><td><a href="{% url 'expense:expense_detail' trip.expense_doc.pk %}">{{ trip.expense_doc.title }}</a></td></tr>
+          {% endif %}
+        </table>
+        <h6>결재선</h6>
+        <table class="table table-sm">
+          <thead><tr><th>순서</th><th>결재자</th><th>상태</th><th>의견</th><th>처리일시</th></tr></thead>
+          <tbody>
+          {% for line in lines %}
+          <tr>
+            <td>{{ line.order }}</td>
+            <td>{{ line.approver }}</td>
+            <td><span class="badge bg-{% if line.status == 'APPROVED' %}success{% elif line.status == 'REJECTED' %}danger{% elif line.status == 'PENDING' %}warning text-dark{% else %}secondary{% endif %}">{{ line.get_status_display }}</span></td>
+            <td>{{ line.comment }}</td>
+            <td>{{ line.acted_at|default:'-' }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <a href="{% url 'trip:trip_list' %}" class="btn btn-secondary">목록으로</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

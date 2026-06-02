@@ -1,0 +1,27 @@
+{% extends 'layout/base.html' %}
+{% block title %}{{ emp }} - 직원 정보{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <h4>직원 정보</h4>
+                <a href="{% url 'accounts:employee_edit' emp.pk %}" class="btn btn-sm btn-outline-primary">수정</a>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tr><th>아이디</th><td>{{ emp.username }}</td></tr>
+                    <tr><th>이름</th><td>{{ emp.get_full_name|default:'-' }}</td></tr>
+                    <tr><th>이메일</th><td>{{ emp.email|default:'-' }}</td></tr>
+                    <tr><th>직급</th><td><span class="badge bg-secondary">{{ emp.rank }}</span></td></tr>
+                    <tr><th>부서</th><td>{{ emp.department|default:'-' }}</td></tr>
+                    <tr><th>입사일</th><td>{{ emp.join_date }}</td></tr>
+                    <tr><th>연차 잔여</th><td>{{ emp.annual_leave_days }}일</td></tr>
+                    <tr><th>관리자 여부</th><td>{% if emp.is_admin %}<span class="badge bg-primary">관리자</span>{% else %}-{% endif %}</td></tr>
+                </table>
+                <a href="{% url 'accounts:employee_list' %}" class="btn btn-secondary">목록으로</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

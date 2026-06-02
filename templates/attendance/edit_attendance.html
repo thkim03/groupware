@@ -1,0 +1,36 @@
+{% extends 'layout/base.html' %}
+{% block title %}근태 수정{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header"><h5>근태 수정 - {{ record.date }}</h5></div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">출근시간</label>
+            <input type="time" name="check_in" class="form-control" value="{{ record.check_in|time:'H:i'|default:'' }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">퇴근시간</label>
+            <input type="time" name="check_out" class="form-control" value="{{ record.check_out|time:'H:i'|default:'' }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">비고</label>
+            <input type="text" name="note" class="form-control" value="{{ record.note }}">
+          </div>
+          <div class="form-check mb-3">
+            <input type="checkbox" name="is_business_trip" class="form-check-input" id="trip" {% if record.is_business_trip %}checked{% endif %}>
+            <label class="form-check-label" for="trip">출장</label>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">저장</button>
+            <a href="javascript:history.back()" class="btn btn-secondary">취소</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

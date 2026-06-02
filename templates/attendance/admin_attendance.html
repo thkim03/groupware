@@ -1,0 +1,51 @@
+{% extends 'layout/base.html' %}
+{% block title %}전체 근태 현황{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>전체 근태 현황 - {{ year }}년 {{ month }}월</h2>
+  <div class="d-flex gap-2">
+    <a href="{% url 'attendance:admin_attendance_month' prev_month.year prev_month.month %}" class="btn btn-outline-secondary btn-sm">&lt; 이전달</a>
+    <a href="{% url 'attendance:admin_attendance_month' next_month.year next_month.month %}" class="btn btn-outline-secondary btn-sm">다음달 &gt;</a>
+    <a href="{% url 'attendance:admin_attendance_excel' year month %}" class="btn btn-success btn-sm"><i class="bi bi-file-earmark-excel"></i> 엑셀 다운로드</a>
+  </div>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm mb-0" style="font-size:0.8rem">
+        <thead class="table-light">
+          <tr>
+            <th style="min-width:100px">직원</th>
+            {% for day in days %}
+            <th class="text-center" style="min-width:50px">{{ day|date:"d" }}<br><small>{{ day|date:"D" }}</small></th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+        {% for emp in employees %}
+        <tr>
+          <td>{{ emp.get_full_name|default:emp.username }}<br><small class="text-muted">{{ emp.rank }}</small></td>
+          {% for day in days %}
+          {% with r=records|default:'' %}
+          <td class="text-center {% if day.weekday >= 5 %}table-light{% endif %}">
+            {% with key=emp.pk %}
+            {% comment %}records[(emp.pk, day)]{% endcomment %}
+            {% for rk, rv in records.items %}
+              {% if rk.0 == emp.pk and rk.1 == day %}
+                {% if rv.is_business_trip %}<span class="badge bg-info" style="font-size:.65rem">출장</span>
+                {% elif rv.check_in %}<span style="font-size:.7rem">{{ rv.check_in|time:"H:i" }}{% if rv.check_out %}<br>{{ rv.check_out|time:"H:i" }}{% endif %}</span>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {% endwith %}
+          </td>
+          {% endwith %}
+          {% endfor %}
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

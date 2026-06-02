@@ -1,0 +1,64 @@
+{% extends 'layout/base.html' %}
+{% block title %}지출결의{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header"><h4>지출결의서 작성</h4></div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">제목</label>
+            <input type="text" name="title" class="form-control" required>
+          </div>
+          <h6>지출 항목</h6>
+          <table class="table table-sm">
+            <thead><tr><th>항목명</th><th>금액</th><th></th></tr></thead>
+            <tbody id="items-body">
+              <tr>
+                <td><input type="text" name="item_desc" class="form-control form-control-sm" placeholder="항목명" required></td>
+                <td><input type="number" name="item_amount" class="form-control form-control-sm" placeholder="금액" required></td>
+                <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">삭제</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <button type="button" class="btn btn-sm btn-secondary mb-3" onclick="addRow()">+ 항목 추가</button>
+          <div class="mb-3">
+            <label class="form-label">첨부파일</label>
+            <input type="file" name="attachment" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">결재선 선택</label>
+            <select name="approvers" class="form-select" multiple size="6" required>
+              {% for emp in employees %}
+              {% if emp != user %}
+              <option value="{{ emp.pk }}">{{ emp }} - {{ emp.department }}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">상신</button>
+            <a href="{% url 'expense:expense_list' %}" class="btn btn-secondary">취소</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function addRow() {
+  const tbody = document.getElementById('items-body');
+  const row = tbody.rows[0].cloneNode(true);
+  row.querySelectorAll('input').forEach(i => i.value = '');
+  tbody.appendChild(row);
+}
+function removeRow(btn) {
+  const tbody = document.getElementById('items-body');
+  if (tbody.rows.length > 1) btn.closest('tr').remove();
+}
+</script>
+{% endblock %}
