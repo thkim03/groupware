@@ -1,3 +1,4 @@
+import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -60,6 +61,8 @@ def employee_create(request):
                 department=department,
             )
             if join_date:
+                if isinstance(join_date, str):
+                    join_date = datetime.date.fromisoformat(join_date)
                 emp.join_date = join_date
                 emp.save()
             emp.refresh_annual_leave()
