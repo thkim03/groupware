@@ -19,3 +19,8 @@
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
+
+python manage.py migrate
+python manage.py create_initial_data
+python manage.py runserver
+```
