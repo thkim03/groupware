@@ -36,14 +36,20 @@ class Employee(AbstractUser):
         return rank_idx >= RANK_ORDER.index('부장')
 
     def calculate_annual_leave(self):
+        """근로기준법 제60조 기준 연차 계산"""
         today = datetime.date.today()
         delta = today - self.join_date
-        years = delta.days // 365
-        months = (delta.days % 365) // 30
+        total_days = delta.days
+        years = total_days // 365
+        months = (total_days % 365) // 30
+
         if years < 1:
-            return months
+            # 1년 미만: 매 1개월 개근 시 1일 (최대 11일)
+            return min(months, 11)
         else:
-            return 15
+            # 1년 이상: 15일 기본, 3년차부터 2년마다 1일 추가, 최대 25일
+            extra = (years - 1) // 2
+            return min(15 + extra, 25)
 
     def refresh_annual_leave(self):
         self.annual_leave_days = self.calculate_annual_leave()

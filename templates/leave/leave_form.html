@@ -15,7 +15,7 @@
           </div>
           <div class="mb-3">
             <label class="form-label">휴가종류</label>
-            <select name="leave_type" class="form-select" required>
+            <select name="leave_type" id="id_leave_type" class="form-select" required>
               {% for val, label in leave_types %}
               <option value="{{ val }}">{{ label }}</option>
               {% endfor %}
@@ -24,16 +24,16 @@
           <div class="row">
             <div class="col mb-3">
               <label class="form-label">시작일</label>
-              <input type="date" name="start_date" class="form-control" required>
+              <input type="date" name="start_date" id="id_start_date" class="form-control" required>
             </div>
             <div class="col mb-3">
               <label class="form-label">종료일</label>
-              <input type="date" name="end_date" class="form-control" required>
+              <input type="date" name="end_date" id="id_end_date" class="form-control" required>
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">일수</label>
-            <input type="number" name="days_count" class="form-control" step="0.5" min="0.5" required>
+            <label class="form-label">일수 <small class="text-muted">(자동 계산)</small></label>
+            <input type="number" name="days_count" id="id_days_count" class="form-control" step="0.5" min="0.5" readonly required>
           </div>
           <div class="mb-3">
             <label class="form-label">결재선 선택 (순서대로 선택)</label>
@@ -55,4 +55,53 @@
     </div>
   </div>
 </div>
+
+<script>
+const HALF_TYPES = ['MORNING_HALF', 'AFTERNOON_HALF'];
+
+function countWeekdays(startStr, endStr) {
+  let count = 0;
+  const cur = new Date(startStr + 'T00:00:00');
+  const last = new Date(endStr + 'T00:00:00');
+  while (cur <= last) {
+    const dow = cur.getDay();
+    if (dow !== 0 && dow !== 6) count++;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return count;
+}
+
+function recalc() {
+  const leaveType = document.getElementById('id_leave_type').value;
+  const startVal = document.getElementById('id_start_date').value;
+  const endField = document.getElementById('id_end_date');
+  const daysField = document.getElementById('id_days_count');
+
+  if (HALF_TYPES.includes(leaveType)) {
+    if (startVal) {
+      endField.value = startVal;
+      endField.readOnly = true;
+    }
+    daysField.value = '0.5';
+    return;
+  }
+
+  endField.readOnly = false;
+  const endVal = endField.value;
+
+  if (startVal && endVal) {
+    if (endVal < startVal) {
+      endField.value = startVal;
+      daysField.value = '1';
+      return;
+    }
+    const days = countWeekdays(startVal, endVal);
+    daysField.value = days > 0 ? days : '';
+  }
+}
+
+document.getElementById('id_leave_type').addEventListener('change', recalc);
+document.getElementById('id_start_date').addEventListener('change', recalc);
+document.getElementById('id_end_date').addEventListener('change', recalc);
+</script>
 {% endblock %}
