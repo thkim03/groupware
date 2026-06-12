@@ -1,3 +1,4 @@
+import decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -14,34 +15,38 @@ def leave_create(request):
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
         days_count = request.POST.get('days_count')
-        title = request.POST.get('title', f'휴가신청')
+        title = request.POST.get('title', '휴가신청')
         approver_ids = request.POST.getlist('approvers')
         if not all([leave_type, start_date, end_date, days_count, approver_ids]):
             messages.error(request, '모든 필드를 입력해주세요.')
         else:
-            doc = ApprovalDoc.objects.create(
-                doc_type='LEAVE',
-                status='DRAFT',
-                title=title,
-                author=request.user,
-            )
-            for i, aid in enumerate(approver_ids):
-                ApprovalLine.objects.create(
-                    doc=doc,
-                    approver_id=int(aid),
-                    order=i + 1,
-                    status='WAITING',
+            days_decimal = decimal.Decimal(str(days_count))
+            if leave_type in ('ANNUAL', 'MORNING_HALF', 'AFTERNOON_HALF') and days_decimal > request.user.annual_leave_days:
+                messages.error(request, f'잔여 연차({request.user.annual_leave_days}일)가 부족합니다.')
+            else:
+                doc = ApprovalDoc.objects.create(
+                    doc_type='LEAVE',
+                    status='DRAFT',
+                    title=title,
+                    author=request.user,
                 )
-            LeaveRequest.objects.create(
-                doc=doc,
-                leave_type=leave_type,
-                start_date=start_date,
-                end_date=end_date,
-                days_count=days_count,
-            )
-            doc.submit()
-            messages.success(request, '휴가신청서가 상신되었습니다.')
-            return redirect('leave:leave_detail', pk=doc.pk)
+                for i, aid in enumerate(approver_ids):
+                    ApprovalLine.objects.create(
+                        doc=doc,
+                        approver_id=int(aid),
+                        order=i + 1,
+                        status='WAITING',
+                    )
+                LeaveRequest.objects.create(
+                    doc=doc,
+                    leave_type=leave_type,
+                    start_date=start_date,
+                    end_date=end_date,
+                    days_count=days_decimal,
+                )
+                doc.submit()
+                messages.success(request, '휴가신청서가 상신되었습니다.')
+                return redirect('leave:leave_detail', pk=doc.pk)
     return render(request, 'leave/leave_form.html', {
         'employees': employees,
         'leave_types': LeaveRequest.LEAVE_TYPE_CHOICES,
