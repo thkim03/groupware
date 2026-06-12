@@ -35,11 +35,15 @@ def check_out(request):
         today = date.today()
         from django.utils import timezone
         now = timezone.localtime().time()
+        is_trip = request.POST.get('is_business_trip') == '1'
         record = AttendanceRecord.objects.filter(employee=request.user, date=today).first()
         if record:
             record.check_out = now
+            if is_trip:
+                record.is_business_trip = True
             record.save()
-            messages.success(request, f'퇴근 처리되었습니다. ({now.strftime("%H:%M")})')
+            label = '출장(외근)후 퇴근' if is_trip else '퇴근'
+            messages.success(request, f'{label} 처리되었습니다. ({now.strftime("%H:%M")})')
         else:
             messages.error(request, '출근 기록이 없습니다.')
     return redirect('dashboard:index')

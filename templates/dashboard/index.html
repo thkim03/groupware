@@ -10,13 +10,16 @@
         {% if today_record %}
           <p class="mb-1">출근: <strong>{{ today_record.check_in|default:"-" }}</strong></p>
           <p class="mb-1">퇴근: <strong>{{ today_record.check_out|default:"-" }}</strong></p>
-          {% if today_record.is_business_trip %}<span class="badge bg-info">출장중</span>{% endif %}
+          {% if today_record.is_business_trip %}<span class="badge bg-info">출장(외근)후 퇴근</span>{% endif %}
         {% else %}
           <p class="text-muted">아직 출근하지 않았습니다.</p>
         {% endif %}
         <div class="d-flex gap-2 mt-2">
-          <form method="post" action="{% url 'attendance:check_in' %}">{% csrf_token %}<button class="btn btn-sm btn-success">출근</button></form>
-          <form method="post" action="{% url 'attendance:check_out' %}">{% csrf_token %}<button class="btn btn-sm btn-danger">퇴근</button></form>
+          <form method="post" action="{% url 'attendance:check_in' %}">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-success">출근</button>
+          </form>
+          <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal">퇴근</button>
         </div>
       </div>
     </div>
@@ -37,6 +40,65 @@
         <h6 class="card-title text-muted">결재 대기</h6>
         <p class="fs-3 fw-bold text-primary mb-0">{{ pending_lines|length }}건</p>
         <a href="{% url 'approvals:inbox' %}" class="btn btn-sm btn-outline-primary mt-2">결재함 가기</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 퇴근 모달 -->
+<div class="modal fade" id="checkoutModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title">퇴근 유형 선택</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body d-grid gap-2">
+        <form method="post" action="{% url 'attendance:check_out' %}">
+          {% csrf_token %}
+          <input type="hidden" name="is_business_trip" value="0">
+          <button type="submit" class="btn btn-danger w-100">일반 퇴근</button>
+        </form>
+        <form method="post" action="{% url 'attendance:check_out' %}">
+          {% csrf_token %}
+          <input type="hidden" name="is_business_trip" value="1">
+          <button type="submit" class="btn btn-warning w-100">출장(외근)후 퇴근</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-bold">
+        {{ cal_year }}년 {{ cal_month }}월 출장 일정
+      </div>
+      <div class="card-body p-2">
+        <table class="table table-bordered table-sm text-center mb-0" style="table-layout:fixed;">
+          <thead class="table-light">
+            <tr>
+              <th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th class="text-danger">토</th><th class="text-primary">일</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for week in cal_weeks %}
+            <tr style="height:70px; vertical-align:top;">
+              {% for cell in week %}
+              <td class="p-1 {% if cell.is_today %}table-warning{% endif %}">
+                {% if cell.day %}
+                  <div class="fw-bold small">{{ cell.day }}</div>
+                  {% for name in cell.trips %}
+                    <span class="badge bg-info text-dark d-block text-truncate mb-1" style="font-size:0.7rem;" title="{{ name }}">{{ name }}</span>
+                  {% endfor %}
+                {% endif %}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
