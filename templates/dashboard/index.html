@@ -14,12 +14,21 @@
         {% else %}
           <p class="text-muted">아직 출근하지 않았습니다.</p>
         {% endif %}
-        <div class="d-flex gap-2 mt-2">
+        <div class="d-flex gap-2 mt-2 flex-wrap">
           <form method="post" action="{% url 'attendance:check_in' %}">
             {% csrf_token %}
             <button class="btn btn-sm btn-success">출근</button>
           </form>
-          <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal">퇴근</button>
+          <form method="post" action="{% url 'attendance:check_out' %}">
+            {% csrf_token %}
+            <input type="hidden" name="is_business_trip" value="0">
+            <button class="btn btn-sm btn-danger">퇴근</button>
+          </form>
+          <form method="post" action="{% url 'attendance:check_out' %}">
+            {% csrf_token %}
+            <input type="hidden" name="is_business_trip" value="1">
+            <button class="btn btn-sm btn-warning">출장·외근 퇴근</button>
+          </form>
         </div>
       </div>
     </div>
@@ -45,29 +54,6 @@
   </div>
 </div>
 
-<!-- 퇴근 모달 -->
-<div class="modal fade" id="checkoutModal" tabindex="-1">
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h6 class="modal-title">퇴근 유형 선택</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body d-grid gap-2">
-        <form method="post" action="{% url 'attendance:check_out' %}">
-          {% csrf_token %}
-          <input type="hidden" name="is_business_trip" value="0">
-          <button type="submit" class="btn btn-danger w-100">일반 퇴근</button>
-        </form>
-        <form method="post" action="{% url 'attendance:check_out' %}">
-          {% csrf_token %}
-          <input type="hidden" name="is_business_trip" value="1">
-          <button type="submit" class="btn btn-warning w-100">출장(외근)후 퇴근</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
 
 <div class="row g-3 mb-4">
   <div class="col-12">
