@@ -65,10 +65,98 @@
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-header bg-white d-flex justify-content-between align-items-center">
     <span class="fw-bold"><i class="bi bi-calendar3"></i> 전체 일정</span>
-    <a href="{% url 'schedule:create' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg"></i> 일정 등록</a>
+    <button class="btn btn-sm btn-outline-primary" onclick="openCreateModal()"><i class="bi bi-plus-lg"></i> 일정 등록</button>
   </div>
   <div class="card-body">
     <div id="dashboardCalendar"></div>
+  </div>
+</div>
+
+<!-- 일정 상세/수정 모달 -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="eventModalTitle"></h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="eventModalBody"></div>
+      <div class="modal-footer" id="eventModalFooter"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 일정 등록 모달 -->
+<div class="modal fade" id="createModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title">일정 등록</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="createForm" method="post" action="{% url 'schedule:create' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">제목 *</label>
+            <input type="text" name="title" class="form-control" required>
+          </div>
+          <div class="row">
+            <div class="col mb-2">
+              <label class="form-label">시작일 *</label>
+              <input type="date" name="start_date" id="modal_start_date" class="form-control" required>
+            </div>
+            <div class="col mb-2">
+              <label class="form-label">종료일</label>
+              <input type="date" name="end_date" id="modal_end_date" class="form-control">
+            </div>
+          </div>
+          <div class="mb-2 form-check">
+            <input type="checkbox" class="form-check-input" id="modal_all_day" name="all_day" value="1" checked>
+            <label class="form-check-label" for="modal_all_day">종일</label>
+          </div>
+          <div id="modal_time_fields" class="row" style="display:none">
+            <div class="col mb-2">
+              <label class="form-label">시작시간</label>
+              <input type="time" name="start_time" class="form-control">
+            </div>
+            <div class="col mb-2">
+              <label class="form-label">종료시간</label>
+              <input type="time" name="end_time" class="form-control">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col mb-2">
+              <label class="form-label">공개범위</label>
+              <select name="category" class="form-select">
+                <option value="PERSONAL">개인</option>
+                <option value="SHARED">전체공유</option>
+              </select>
+            </div>
+            <div class="col mb-2">
+              <label class="form-label">색상</label>
+              <select name="color" class="form-select">
+                <option value="#0d6efd">파랑</option>
+                <option value="#198754">초록</option>
+                <option value="#dc3545">빨강</option>
+                <option value="#ffc107">노랑</option>
+                <option value="#0dcaf0">하늘</option>
+                <option value="#6c757d">회색</option>
+                <option value="#6f42c1">보라</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">메모</label>
+            <textarea name="memo" class="form-control" rows="2"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">취소</button>
+        <button type="submit" form="createForm" class="btn btn-primary btn-sm">저장</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -121,21 +209,57 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/ko.global.min.js"></script>
 <script>
+const myUserId = {{ user.pk }};
+let calendarInstance;
+
+function openCreateModal(dateStr) {
+  const today = dateStr || new Date().toISOString().slice(0, 10);
+  document.getElementById('modal_start_date').value = today;
+  document.getElementById('modal_end_date').value = today;
+  new bootstrap.Modal(document.getElementById('createModal')).show();
+}
+
+document.getElementById('modal_all_day').addEventListener('change', function() {
+  document.getElementById('modal_time_fields').style.display = this.checked ? 'none' : '';
+});
+
 document.addEventListener('DOMContentLoaded', function() {
-  const cal = new FullCalendar.Calendar(document.getElementById('dashboardCalendar'), {
+  calendarInstance = new FullCalendar.Calendar(document.getElementById('dashboardCalendar'), {
     locale: 'ko',
     initialView: 'dayGridMonth',
-    headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
     events: '{% url "schedule:events_json" %}',
     height: 500,
     eventClick: function(info) {
-      window.location.href = '{% url "schedule:calendar" %}';
+      const ev = info.event;
+      const p = ev.extendedProps;
+      document.getElementById('eventModalTitle').textContent = ev.title;
+
+      let body = `<p class="mb-1"><strong>기간:</strong> ${ev.startStr.slice(0,10)}`;
+      if (ev.endStr) body += ` ~ ${new Date(ev.end - 86400000).toISOString().slice(0,10)}`;
+      body += `</p>`;
+      if (p.author) body += `<p class="mb-1"><strong>작성자:</strong> ${p.author}</p>`;
+      if (p.category) body += `<p class="mb-1"><strong>공개범위:</strong> ${p.category}</p>`;
+      if (p.memo) body += `<p class="mb-1"><strong>메모:</strong> ${p.memo}</p>`;
+      document.getElementById('eventModalBody').innerHTML = body;
+
+      let footer = `<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">닫기</button>`;
+      if (p.type === 'schedule' && p.pk) {
+        footer += ` <a href="/schedule/${p.pk}/edit/" class="btn btn-primary btn-sm">수정</a>`;
+        footer += ` <form method="post" action="/schedule/${p.pk}/delete/" class="d-inline"
+            onsubmit="return confirm('삭제하시겠습니까?')">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          <button type="submit" class="btn btn-danger btn-sm">삭제</button>
+        </form>`;
+      }
+      document.getElementById('eventModalFooter').innerHTML = footer;
+      new bootstrap.Modal(document.getElementById('eventModal')).show();
     },
     dateClick: function(info) {
-      window.location.href = '{% url "schedule:calendar" %}';
+      openCreateModal(info.dateStr);
     },
   });
-  cal.render();
+  calendarInstance.render();
 });
 </script>
 {% endblock %}
