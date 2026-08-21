@@ -95,11 +95,14 @@ def employee_edit(request, pk):
             emp.rank = request.POST.get('rank', emp.rank)
             join_date = request.POST.get('join_date')
             if join_date:
+                if isinstance(join_date, str):
+                    join_date = datetime.date.fromisoformat(join_date)
                 emp.join_date = join_date
         password = request.POST.get('password')
         if password:
             emp.set_password(password)
         emp.save()
+        emp.refresh_annual_leave()
         messages.success(request, '정보가 수정되었습니다.')
         return redirect('accounts:employee_detail', pk=emp.pk)
     return render(request, 'accounts/employee_form.html', {
