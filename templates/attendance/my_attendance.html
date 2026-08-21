@@ -29,7 +29,14 @@
         <td>{{ r.note }}</td>
         <td><a href="{% url 'attendance:edit_attendance' r.pk %}" class="btn btn-sm btn-outline-secondary">수정</a></td>
         {% else %}
-        <td>-</td><td>-</td><td></td><td></td><td></td>
+        <td>-</td><td>-</td><td></td><td></td>
+        <td>
+          <form method="post" action="{% url 'attendance:direct_add' %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}">
+            <button type="submit" class="btn btn-sm btn-outline-primary">직접입력</button>
+          </form>
+        </td>
         {% endif %}
         {% endwith %}
       </tr>

@@ -13,4 +13,5 @@ urlpatterns = [
     path('admin/<int:year>/<int:month>/', views.admin_attendance, name='admin_attendance_month'),
     path('admin/edit/<int:pk>/', views.admin_edit_attendance, name='admin_edit_attendance'),
     path('admin/excel/<int:year>/<int:month>/', views.admin_attendance_excel, name='admin_attendance_excel'),
+    path('direct-add/', views.direct_add, name='direct_add'),
 ]

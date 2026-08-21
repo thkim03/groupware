@@ -180,3 +180,21 @@ def admin_attendance_excel(request, year, month):
     response['Content-Disposition'] = f'attachment; filename=attendance_{year}_{month}.xlsx'
     wb.save(response)
     return response
+
+
+@login_required
+def direct_add(request):
+    """기록 없는 날 직접 근태 생성 후 수정 화면으로 이동"""
+    if request.method == 'POST':
+        date_str = request.POST.get('date')
+        try:
+            target_date = date.fromisoformat(date_str)
+        except (ValueError, TypeError):
+            messages.error(request, '날짜가 올바르지 않습니다.')
+            return redirect('attendance:my_attendance')
+        record, created = AttendanceRecord.objects.get_or_create(
+            employee=request.user,
+            date=target_date,
+        )
+        return redirect('attendance:edit_attendance', pk=record.pk)
+    return redirect('attendance:my_attendance')

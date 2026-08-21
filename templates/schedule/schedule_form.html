@@ -1,0 +1,87 @@
+{% extends 'layout/base.html' %}
+{% block title %}{% if action == 'edit' %}일정 수정{% else %}일정 등록{% endif %}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold">{% if action == 'edit' %}일정 수정{% else %}일정 등록{% endif %}</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">제목 *</label>
+            <input type="text" name="title" class="form-control" value="{{ schedule.title|default:'' }}" required>
+          </div>
+          <div class="row">
+            <div class="col mb-3">
+              <label class="form-label">시작일 *</label>
+              <input type="date" name="start_date" id="id_start_date" class="form-control"
+                     value="{{ schedule.start_date|date:'Y-m-d'|default:'' }}" required>
+            </div>
+            <div class="col mb-3">
+              <label class="form-label">종료일</label>
+              <input type="date" name="end_date" id="id_end_date" class="form-control"
+                     value="{{ schedule.end_date|date:'Y-m-d'|default:'' }}">
+            </div>
+          </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="id_all_day" name="all_day"
+                   value="1" {% if schedule.all_day or not schedule %}checked{% endif %}>
+            <label class="form-check-label" for="id_all_day">종일</label>
+          </div>
+          <div id="time_fields" class="row" {% if schedule.all_day or not schedule %}style="display:none"{% endif %}>
+            <div class="col mb-3">
+              <label class="form-label">시작시간</label>
+              <input type="time" name="start_time" class="form-control" value="{{ schedule.start_time|default:'' }}">
+            </div>
+            <div class="col mb-3">
+              <label class="form-label">종료시간</label>
+              <input type="time" name="end_time" class="form-control" value="{{ schedule.end_time|default:'' }}">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">공개범위</label>
+            <select name="category" class="form-select">
+              {% for val, label in categories %}
+              <option value="{{ val }}" {% if schedule.category == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">색상</label>
+            <div class="d-flex gap-2 flex-wrap">
+              {% for val, label in colors %}
+              <label class="d-flex align-items-center gap-1">
+                <input type="radio" name="color" value="{{ val }}"
+                       {% if schedule.color == val or not schedule and val == '#0d6efd' %}checked{% endif %}>
+                <span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:{{ val }};"></span>
+                {{ label }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">메모</label>
+            <textarea name="memo" class="form-control" rows="3">{{ schedule.memo|default:'' }}</textarea>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">저장</button>
+            <a href="{% url 'schedule:calendar' %}" class="btn btn-secondary">취소</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('id_all_day').addEventListener('change', function() {
+  document.getElementById('time_fields').style.display = this.checked ? 'none' : '';
+});
+const params = new URLSearchParams(location.search);
+const d = params.get('date');
+if (d) {
+  document.getElementById('id_start_date').value = d;
+  document.getElementById('id_end_date').value = d;
+}
+</script>
+{% endblock %}

@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'trip',
     'purchase',
     'expense',
+    'schedule',
 ]
 
 MIDDLEWARE = [
