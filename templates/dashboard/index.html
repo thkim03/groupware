@@ -61,6 +61,51 @@
   </div>
 </div>
 
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-bold">내 기안 문서</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light"><tr><th>문서</th><th>상태</th><th>기안일</th></tr></thead>
+          <tbody>
+          {% for doc in my_docs %}
+          <tr>
+            <td>{{ doc }}</td>
+            <td><span class="badge bg-{% if doc.status == 'APPROVED' %}success{% elif doc.status == 'REJECTED' %}danger{% elif doc.status == 'PENDING' %}warning{% else %}secondary{% endif %}">{{ doc.get_status_display }}</span></td>
+            <td>{{ doc.created_at|date:"m/d" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted py-3">기안 문서 없음</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-bold">결재 대기 문서</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light"><tr><th>문서</th><th>기안자</th><th>기안일</th></tr></thead>
+          <tbody>
+          {% for line in pending_lines %}
+          <tr>
+            <td><a href="{% url 'approvals:approve_action' line.doc.pk %}">{{ line.doc }}</a></td>
+            <td>{{ line.doc.author }}</td>
+            <td>{{ line.doc.created_at|date:"m/d" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted py-3">대기 문서 없음</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 전체 일정 캘린더 -->
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -155,51 +200,6 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">취소</button>
         <button type="submit" form="createForm" class="btn btn-primary btn-sm">저장</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row g-3">
-  <div class="col-md-6">
-    <div class="card border-0 shadow-sm">
-      <div class="card-header bg-white fw-bold">결재 대기 문서</div>
-      <div class="card-body p-0">
-        <table class="table table-sm mb-0">
-          <thead class="table-light"><tr><th>문서</th><th>기안자</th><th>기안일</th></tr></thead>
-          <tbody>
-          {% for line in pending_lines %}
-          <tr>
-            <td><a href="{% url 'approvals:approve_action' line.doc.pk %}">{{ line.doc }}</a></td>
-            <td>{{ line.doc.author }}</td>
-            <td>{{ line.doc.created_at|date:"m/d" }}</td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="3" class="text-center text-muted py-3">대기 문서 없음</td></tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-6">
-    <div class="card border-0 shadow-sm">
-      <div class="card-header bg-white fw-bold">내 기안 문서</div>
-      <div class="card-body p-0">
-        <table class="table table-sm mb-0">
-          <thead class="table-light"><tr><th>문서</th><th>상태</th><th>기안일</th></tr></thead>
-          <tbody>
-          {% for doc in my_docs %}
-          <tr>
-            <td>{{ doc }}</td>
-            <td><span class="badge bg-{% if doc.status == 'APPROVED' %}success{% elif doc.status == 'REJECTED' %}danger{% elif doc.status == 'PENDING' %}warning{% else %}secondary{% endif %}">{{ doc.get_status_display }}</span></td>
-            <td>{{ doc.created_at|date:"m/d" }}</td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="3" class="text-center text-muted py-3">기안 문서 없음</td></tr>
-          {% endfor %}
-          </tbody>
-        </table>
       </div>
     </div>
   </div>
